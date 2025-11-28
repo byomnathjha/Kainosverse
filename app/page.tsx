@@ -462,13 +462,13 @@ const App: React.FC = () => {
                         <div className="mt-4 text-center pt-4 border-t border-gray-800">
                             <p className="text-sm font-semibold text-gray-300">Organized by</p>
                             <p className="text-xl font-bold text-white mt-1">
-                                Kainosverse Innovations
+                                Kainosverse
                             </p>
                             <p className="text-base text-[#e81cff] mt-2">
                                 <a href="http://www.kainosverse.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#40c9ff] transition-colors">www.kainosverse.com</a>
                             </p>
                             <p className="text-base text-white mt-1">
-                                <span className="text-[#40c9ff]">Contact:</span> +91 7999847933
+                                <span className="text-[#40c9ff]">Contact:</span> +91 9770950823, +91 7999847933
                             </p>
                         </div>
 
@@ -714,6 +714,42 @@ const App: React.FC = () => {
                         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
                     }
                 }
+                    @media (max-width: 640px) {
+  header h1.whitespace-nowrap {
+    white-space: normal !important;        /* allow wrapping on tiny screens */
+    font-size: 1.375rem !important;       /* ~text-xl, adjust as needed */
+    line-height: 1.05 !important;
+  }
+  header h1.whitespace-nowrap > span {
+    display: block !important;            /* move "Jr." below on very small screens */
+    margin-top: 0.125rem;
+  }
+}
+
+/* On small→medium screens keep inline but slightly smaller than desktop */
+@media (min-width: 641px) and (max-width: 1024px) {
+  header h1.whitespace-nowrap {
+    white-space: nowrap;                  /* preserve on larger sizes */
+    font-size: 1.875rem !important;       /* ~text-2xl / text-3xl — tune if needed */
+    line-height: 1.05;
+  }
+  header h1.whitespace-nowrap > span {
+    display: inline !important;
+    margin-top: 0;
+  }
+}
+
+/* Ensure desktop keeps the original large look */
+@media (min-width: 1025px) {
+  header h1.whitespace-nowrap {
+    white-space: nowrap;                  /* original behavior kept */
+    font-size: inherit;                   /* lets your tailwind classes control it */
+    line-height: inherit;
+  }
+  header h1.whitespace-nowrap > span {
+    display: inline;
+  }
+}
             `}</style>
         </div>
     );
