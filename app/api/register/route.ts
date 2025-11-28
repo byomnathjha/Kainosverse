@@ -1,4 +1,3 @@
-// app/api/register/route.ts
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
@@ -11,29 +10,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // Read environment variables
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS;
-    const recipient = process.env.EMAIL_TO || process.env.EMAIL_USER;
+    const recipient = process.env.EMAIL_TO || user;
 
     if (!user || !pass) {
       console.error("Missing EMAIL_USER or EMAIL_PASS environment variables.");
       return NextResponse.json({ error: "Mail server not configured" }, { status: 500 });
     }
 
+    // Debugging log for Vercel
+    console.log("EMAIL_USER exists:", !!process.env.EMAIL_USER);
+    console.log("EMAIL_PASS exists:", !!process.env.EMAIL_PASS);
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: {
-        user,
-        pass, // use an App Password for Gmail (with 2FA enabled)
-      },
+      auth: { user, pass },
     });
 
-    // Optional verify (helps debugging)
+    // Optional verification (can fail on Vercel, but won't break)
     try {
       await transporter.verify();
       console.log("SMTP transporter verified");
     } catch (verifyErr) {
-      console.warn("SMTP verification warning:", verifyErr);
+      console.warn("SMTP verification warning (non-fatal):", verifyErr);
     }
 
     const mailOptions = {
@@ -54,14 +55,14 @@ export async function POST(req: Request) {
 
     await transporter.sendMail(mailOptions);
 
-    return NextResponse.json({ message: "Email sent" }, { status: 200 });
+    return NextResponse.json({ message: "Email sent successfully" }, { status: 200 });
   } catch (error: any) {
     console.error("Email sending failed:", error);
     return NextResponse.json({ error: error?.message || "Server error" }, { status: 500 });
   }
 }
 
-// small helper to avoid basic injection into HTML
+// Small helper to escape HTML
 function escapeHtml(str: string) {
   return str
     .replaceAll("&", "&amp;")
