@@ -1,258 +1,381 @@
 "use client";
 
 import React, { useState, FormEvent } from "react";
-import { motion, Variants, Transition } from "framer-motion";
+import styled from "styled-components";
+import { motion } from "framer-motion";
 
-// --- TYPE DEFINITIONS ---
-interface InputFieldProps {
-  type: "text" | "email" | "tel" | "number";
-  name: string;
-  placeholder: string;
-  required?: boolean;
+/**
+ * PREMIUM Registration Form UI (Simplified)
+ * - Removed the entire Right Column (Contest Focus, Tips, etc.).
+ * - Kept the form and the primary submission button.
+ */
+
+/* ---------------- Styled Components ---------------- */
+
+const Page = styled.div`
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Darker, more dramatic background for premium feel */
+  background: radial-gradient(1200px 600px at 10% 90%, rgba(99,102,241,0.08), transparent),
+              radial-gradient(1000px 500px at 95% 10%, rgba(6,182,212,0.06), transparent),
+              linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  padding: 40px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+`;
+
+const Card = styled.div`
+  width: 100%;
+  max-width: 600px; /* Reduced width since the right column is gone */
+  /* Clean, high-contrast white card */
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px; /* Increased padding */
+  box-shadow: 0 40px 100px rgba(0,0,0,0.15), 0 10px 30px rgba(0,0,0,0.08); /* Stronger, deeper shadow */
+  display: flex; /* Changed to flex for single column layout */
+  flex-direction: column;
+  gap: 30px;
+  border: 1px solid rgba(226, 232, 240, 0.7); /* Lighter border for clean look */
+
+  @media (max-width: 640px) {
+    padding: 30px;
+  }
+`;
+
+/* main form */
+const FormContainer = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 18px; /* Increased gap */
+`;
+
+/* small headings */
+const Headline = styled.h1`
+  margin: 0;
+  font-size: 36px; /* Bigger headline */
+  line-height: 1.1;
+  color: #1e293b;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+`;
+
+const Sub = styled.p`
+  margin: 8px 0 0;
+  color: #475569;
+  font-weight: 600;
+  font-size: 17px;
+`;
+
+/* grid fields */
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px; /* Increased gap */
+  margin-top: 10px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+/* input wrapper like your 'inputForm' */
+const InputWrap = styled(motion.label)`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px; /* Slightly larger padding */
+  background: #f8fafc; /* Lighter input background */
+  border-radius: 12px; /* Less rounded corners for professionalism */
+  border: 1.5px solid #e2e8f0;
+  height: 56px; /* Taller input */
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+
+  &:focus-within {
+    border-color: #3b82f6; /* Blue focus for a cleaner, professional look */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 15px rgba(59, 130, 246, 0.1);
+  }
+`;
+
+const IconBox = styled.div`
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569; /* Darker icon color */
+  flex: 0 0 22px;
+  svg { display: block; width: 100%; height: auto; fill: currentColor; } /* Ensure SVG fill works with currentColor */
+`;
+
+const Input = styled.input`
+  border: none;
+  outline: none;
+  font-size: 16px; /* Slightly larger font */
+  color: #1e293b;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  padding-right: 6px;
+
+  &::placeholder { color: #94a3b8; font-weight: 500; }
+`;
+
+const Textarea = styled.textarea`
+  width: 100%;
+  min-height: 140px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  padding: 14px 18px;
+  font-size: 16px;
+  color: #1e293b;
+  background: #f8fafc;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+`;
+
+/* big submit button */
+const Submit = styled(motion.button)`
+  width: 100%;
+  padding: 18px 20px; /* Larger button */
+  border-radius: 12px; /* Less rounded corners */
+  border: none;
+  /* Premium solid color blue */
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  /* Stronger box shadow for impact */
+  box-shadow: 0 16px 30px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 200ms ease;
+
+  &:hover {
+    background: #2563eb;
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+`;
+
+/* message box */
+const Message = styled.div<{ ok?: boolean }>`
+  margin-top: 10px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  color: ${(p) => (p.ok ? "#15803d" : "#b91c1c")};
+  background: ${(p) => (p.ok ? "#f0fdf4" : "#fef2f2")};
+  border: 1px solid ${(p) => (p.ok ? "#34d399" : "#f87171")};
+`;
+
+/* small helper text */
+const Minor = styled.div`
+  color: #94a3b8;
+  font-size: 13px;
+  margin-top: 6px;
+`;
+
+/* ---------------- Helpers ---------------- */
+
+function isEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-interface ApiResponse {
-  ok: boolean;
-  json: () => Promise<{ success?: boolean; data?: unknown; error?: string }>;
-}
-// ------------------------
-
-// Helper component for the input fields
-const InputField: React.FC<InputFieldProps> = ({
-  type,
-  name,
-  placeholder,
-  required = false,
-}) => (
-  <motion.input
-    type={type}
-    name={name}
-    placeholder={placeholder}
-    className="w-full p-4 border-2 border-slate-200 dark:border-indigo-700 rounded-xl focus:ring-4
-    focus:ring-sky-300 focus:border-sky-500 outline-none transition-all duration-300
-    bg-white dark:bg-slate-900/60 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500
-    shadow-inner text-lg"
-    required={required}
-    // framer-motion supports whileFocus; TypeScript sometimes complains depending on versions,
-    // but this generally works — if your TS complains, you can cast as any: (whileFocus as any)={...}
-    whileFocus={{ scale: 1.005, borderColor: "#0ea5e9", boxShadow: "0 0 0 4px rgba(14, 165, 233, 0.2)" }}
-  />
+// Icon for the main button
+const SendIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 12L20 4L14 20L4 12Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M14 4L10 12L20 18L14 4Z" fill="white"/>
+    </svg>
 );
 
-// Main component: App
-const App: React.FC = () => {
+
+/* ---------------- Main Component ---------------- */
+
+const PageComponent: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<string>("");
+  const [success, setSuccess] = useState<boolean>(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
     setMessage("");
+    setSuccess(false);
 
-    const formData = new FormData(e.target as HTMLFormElement);
-    const data = Object.fromEntries(formData);
+    const form = e.target as HTMLFormElement;
+    const fd = new FormData(form);
+    const data = Object.fromEntries(fd) as Record<string, any>;
 
-    // Simulate API call with exponential backoff logic (simplified retry mechanism)
-    const MAX_RETRIES = 3;
-    let attempts = 0;
+    // client-side basic validation
+    if (!data.student_name || !data.email) {
+      setMessage("Please provide name and email.");
+      setSuccess(false);
+      return;
+    }
+    if (!isEmail(String(data.email))) {
+      setMessage("Please enter a valid email address.");
+      setSuccess(false);
+      return;
+    }
 
-    const simulateApiCall = async (): Promise<ApiResponse> => {
-      // Wait for the simulated latency
-      await new Promise((r) => setTimeout(r, 1200));
-      const success = Math.random() > 0.1;
-      if (success) {
-        return {
-          ok: true,
-          json: async () => ({ success: true, data }),
-        };
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data }),
+      });
+
+      const body = await res.json();
+      setLoading(false);
+
+      if (res.ok) {
+        setMessage(" Registration successful! Confirmation sent to your email.");
+        setSuccess(true);
+        form.reset();
       } else {
-        return {
-          ok: false,
-          json: async () => ({ error: "Server load exceeded capacity." }),
-        };
+        setMessage(body?.error || " Submission failed. Try again.");
+        setSuccess(false);
       }
-    };
-
-    while (attempts < MAX_RETRIES) {
-      try {
-        const res = await simulateApiCall();
-        const result = await res.json();
-
-        setLoading(false);
-
-        if (res.ok) {
-          setMessage("✅ Registration successful! Confirmation email sent.");
-        } else {
-          setMessage(result.error || "❌ Failed to submit. Please check your data.");
-        }
-        return;
-      } catch (error) {
-        // This catch will only trigger on unexpected runtime errors
-        attempts++;
-        if (attempts >= MAX_RETRIES) {
-          setLoading(false);
-          setMessage("❌ Submission failed after multiple retries. Please try again later.");
-          console.error("Final submission error:", error);
-          return;
-        }
-        // Exponential backoff delay
-        const delay = Math.pow(2, attempts) * 500;
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      setLoading(false);
+      setMessage(" Network error. Please check your connection.");
+      setSuccess(false);
     }
   };
 
-  const formVariants: Variants = {
-    hidden: { opacity: 0, y: 50, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 80,
-        damping: 15,
-        delay: 0.1,
-        when: "beforeChildren",
-        staggerChildren: 0.1,
-      } as Transition,
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-  };
-
-  // Custom Icon for Registration/Submit (A modern rocket icon)
-  const SendIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-7 w-7"
-    >
-      <path d="M15 11l4-4L5 3zM15 11l-4 4-2-3-3 2 4 4 4-4z" />
-      <path d="M22 2L11 13M22 2l-2-2-19 19 4-4 4-2 3-2z" />
-    </svg>
-  );
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-indigo-950 p-4 sm:p-8 font-inter relative overflow-hidden">
-      <motion.div
-        className="absolute top-0 left-0 w-[400px] h-[400px] bg-sky-400 rounded-full opacity-10 filter blur-3xl dark:bg-sky-500/20"
-        animate={{ x: [0, 100, 0], y: [0, 80, 0], rotate: [0, 30, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-indigo-500 rounded-full opacity-10 filter blur-3xl dark:bg-indigo-700/20"
-        animate={{ x: [0, -120, 0], y: [0, -90, 0], rotate: [0, -45, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-      />
+    <Page>
+      <Card>
+        <FormContainer onSubmit={handleSubmit}>
+          <div>
+            <Headline>IDAIS Show Jr.</Headline>
+            <Sub>Premier Innovation & AI Contest — Registration</Sub>
+          </div>
 
-      <motion.form
-        onSubmit={handleSubmit}
-        className="bg-white dark:bg-slate-800 shadow-2xl rounded-3xl p-6 sm:p-12 w-full max-w-2xl space-y-8
-        transition-all duration-500 transform border-4 border-sky-400 dark:border-sky-700 ring-8 ring-sky-100 dark:ring-indigo-800/50
-        relative z-10 hover:shadow-3xl hover:border-indigo-500 dark:hover:border-sky-500"
-        variants={formVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div className="text-center" variants={itemVariants}>
-          <h1 className="text-5xl font-extrabold text-indigo-700 dark:text-sky-300 mb-2 leading-tight tracking-tight">
-            IDAIS Show Jr.
-          </h1>
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-5">
-            Premier Innovation & AI Contest Registration
-          </h2>
-          <motion.div
-            className="w-24 h-1 bg-gradient-to-r from-sky-400 to-indigo-600 mx-auto rounded-full mt-3"
-            variants={{ hidden: { width: 0 }, visible: { width: "6rem", transition: { duration: 0.8 } } }}
-          />
-          <p className="text-lg text-gray-600 dark:text-gray-300 mt-5">
-            Submit your groundbreaking project details and secure your spot among the best young innovators.
-          </p>
-        </motion.div>
+          <Minor style={{ marginTop: 10 }}>
+            Fill the form below and we'll email a confirmation to the address provided.
+          </Minor>
 
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InputField type="text" name="student_name" placeholder="Student Name (Full)" required />
-          <InputField type="email" name="email" placeholder="Email ID (Primary)" required />
-          <InputField type="tel" name="contact_number" placeholder="Mobile Contact" required />
-          <InputField type="text" name="class_standard" placeholder="Grade/Class" required />
-          <InputField type="text" name="school_name" placeholder="School Name" required />
-          <InputField type="text" name="group" placeholder="Team Name (Optional)" />
-        </motion.div>
+          <Grid>
+            {/* Student Name */}
+            <InputWrap htmlFor="student_name">
+              <IconBox aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5z" fill="currentColor" />
+                  <path d="M4 20a8 8 0 0 1 16 0" fill="currentColor" />
+                </svg>
+              </IconBox>
+              <Input name="student_name" placeholder="Student Name (Full)" required />
+            </InputWrap>
 
-        <motion.div variants={itemVariants}>
-          <label className="text-gray-700 dark:text-gray-300 font-semibold mb-2 block text-xl">
-            Project Idea Description
-          </label>
-          <motion.textarea
-            name="idea"
-            placeholder="Outline your innovative idea (Problem, Proposed Solution, and anticipated Impact on society or industry). Max 1000 characters."
-            className="w-full p-5 border-2 border-slate-200 dark:border-indigo-700 rounded-2xl focus:ring-4
-            focus:ring-sky-300 focus:border-sky-500 outline-none transition-all duration-300
-            resize-none h-48 bg-white dark:bg-slate-900/60 dark:text-gray-50 shadow-inner text-lg
-            placeholder-gray-400 dark:placeholder-gray-500"
-            maxLength={1000}
-            required
-            whileFocus={{ scale: 1.005, borderColor: "#0ea5e9", boxShadow: "0 0 0 4px rgba(14, 165, 233, 0.2)" }}
-          />
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 text-right">Max 1000 characters</p>
-        </motion.div>
+            {/* Email ID */}
+            <InputWrap htmlFor="email">
+              <IconBox aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M2 6L12 12L22 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </IconBox>
+              <Input name="email" type="email" placeholder="Email ID (Primary)" required />
+            </InputWrap>
 
-        <motion.button
-          type="submit"
-          disabled={loading}
-          className="w-full py-5 text-white font-extrabold text-xl rounded-full
-          bg-gradient-to-r from-sky-500 to-indigo-600 dark:from-sky-400 dark:to-indigo-500
-          shadow-xl shadow-sky-400/40 dark:shadow-indigo-800/50
-          hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 ease-in-out
-          disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3 tracking-wider"
-          whileHover={{ scale: 1.005, boxShadow: "0 15px 30px rgba(14, 165, 233, 0.4)" }}
-          whileTap={{ scale: 0.99 }}
-          variants={itemVariants}
-        >
-          {loading ? (
-            <>
-              <motion.span
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="inline-block w-6 h-6 border-4 border-t-4 border-t-white border-sky-200 rounded-full"
-              />
-              <span>Processing Submission...</span>
-            </>
-          ) : (
-            <>
-              <SendIcon />
-              <span>Register & Launch Idea</span>
-            </>
-          )}
-        </motion.button>
+            {/* Mobile Contact */}
+            <InputWrap htmlFor="contact_number">
+              <IconBox aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M6.6 10.8a10.7 10.7 0 0 0 6.6 6.6l1.6-1.6a1 1 0 0 1 1-.2c1.1.4 2.3.7 3.6.7a1 1 0 0 1 1 1V21a1 1 0 0 1-1 1A18 18 0 0 1 3 4a1 1 0 0 1 1-1h2.5a1 1 0 0 1 1 1c0 1.3.2 2.5.7 3.6a1 1 0 0 1-.2 1l-1.4 1.2z" fill="currentColor"/>
+                </svg>
+              </IconBox>
+              <Input name="contact_number" placeholder="Mobile Contact" required />
+            </InputWrap>
 
-        {message && (
-          <motion.p
-            className={`text-center font-bold text-lg p-3 rounded-xl border-2 ${
-              message.startsWith("✅")
-                ? "text-green-600 bg-green-50 border-green-300 dark:text-green-400 dark:bg-green-900/50 dark:border-green-700"
-                : "text-red-600 bg-red-50 border-red-300 dark:text-red-400 dark:bg-red-900/50 dark:border-red-700"
-            } mt-5`}
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 100, damping: 10 }}
-          >
-            {message}
-          </motion.p>
-        )}
-      </motion.form>
-    </div>
+            {/* Grade / Class */}
+            <InputWrap htmlFor="class_standard">
+              <IconBox aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M7 9h4M7 13h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </IconBox>
+              <Input name="class_standard" placeholder="Grade / Class" required />
+            </InputWrap>
+
+            {/* School / Institution */}
+            <InputWrap htmlFor="school_name">
+              <IconBox aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l9 4-9 4-9-4 9-4z" fill="currentColor"/>
+                  <path d="M3 10v6a9 9 0 0 0 18 0v-6M12 10v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </IconBox>
+              <Input name="school_name" placeholder="School / Institution" required />
+            </InputWrap>
+
+            {/* Team Name */}
+            <InputWrap htmlFor="group">
+              <IconBox aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20a8 8 0 0 1 16 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="17.5" cy="17.5" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+              </IconBox>
+              <Input name="group" placeholder="Team Name (optional)" />
+            </InputWrap>
+          </Grid>
+
+          <div>
+            <Minor style={{ fontWeight: 700, marginBottom: 8, color: "#1e293b", fontSize: 14 }}>Project Idea</Minor>
+            <Textarea name="idea" placeholder="Outline the problem you're solving, your solution, and the anticipated impact (max 1000 characters)" maxLength={1000} />
+            <div style={{ textAlign: "right", marginTop: 8, color: "#94a3b8", fontSize: 13 }}>Max 1000 characters</div>
+          </div>
+
+          {/* inline message area */}
+          {message && <Message ok={success}>{message}</Message>}
+          
+          <div style={{ marginTop: '10px' }}>
+            <Submit
+              type="submit"
+              whileHover={!loading ? { scale: 1.01 } : {}}
+              whileTap={!loading ? { scale: 0.98 } : {}}
+              disabled={loading}
+            >
+              {loading ? (
+                <span style={{ display: "inline-flex", gap: 10, alignItems: "center" }}>
+                  <span style={{ width: 18, height: 18, border: "3px solid rgba(255,255,255,0.25)", borderTopColor: "#ffffff", borderRadius: 999, animation: "spin 1s linear infinite" }} />
+                  Processing Submission...
+                </span>
+              ) : (
+                <>
+                  Register
+                </>
+              )}
+            </Submit>
+
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        </FormContainer>
+      </Card>
+    </Page>
   );
 };
 
-export default App;
+export default PageComponent;
