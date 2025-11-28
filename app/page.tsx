@@ -1,4 +1,3 @@
-// App.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, memo } from 'react';
@@ -23,7 +22,7 @@ interface InputFieldProps {
     name: keyof FormData;
     placeholder: string;
     type?: string;
-    icon: (props?: IconProps) => JSX.Element;
+    icon: React.FC<IconProps>;
     required?: boolean;
     formData: FormData;
     handleChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -234,7 +233,7 @@ const App: React.FC = () => {
                 setLoading(false);
 
                 if (res.ok) {
-                    setMessage(" Registration successful! A confirmation email has been sent.");
+                    setMessage(" Registration successful! ");
                     setSuccess(true);
                     // Reset form after success
                     setFormData({
@@ -311,15 +310,67 @@ const App: React.FC = () => {
                         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
                             
                             {/* Section 1: Personal Details */}
-                            <h2 className="text-xl font-bold text-[#40c9ff] mt-2 pb-2 border-b border-gray-800/50 uppercase tracking-wider">1. Personal & School Details</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <InputField name="student_name" placeholder="Student Name (Full)" icon={UserIcon} required={true} formData={formData} handleChange={handleChange} loading={loading} />
-                                <InputField name="email" placeholder="Email ID (Primary)" icon={MailIcon} type="email" required={true} formData={formData} handleChange={handleChange} loading={loading} />
-                                <InputField name="contact_number" placeholder="Mobile Contact" icon={PhoneIcon} type="tel" required={true} formData={formData} handleChange={handleChange} loading={loading} />
-                                <InputField name="class_standard" placeholder="Grade / Class (e.g., 10th)" icon={ClassIcon} required={true} formData={formData} handleChange={handleChange} loading={loading} />
-                                <InputField name="school_name" placeholder="School / Institution Name" icon={SchoolIcon} required={true} formData={formData} handleChange={handleChange} loading={loading} />
-                                <InputField name="group" placeholder="Team Name (Optional)" icon={TeamIcon} required={false} formData={formData} handleChange={handleChange} loading={loading} />
-                            </div>
+                          <h2 className="text-xl font-bold text-[#40c9ff] mt-2 pb-2 border-b border-gray-800/50 uppercase tracking-wider">
+  1. Personal & School Details
+</h2>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <InputField
+    name="student_name"
+    placeholder="Student Name (Full)"
+    icon={(props) => <UserIcon {...props} />}
+    required={true}
+    formData={formData}
+    handleChange={handleChange}
+    loading={loading}
+  />
+  <InputField
+    name="email"
+    placeholder="Email ID (Primary)"
+    icon={(props) => <MailIcon {...props} />}
+    type="email"
+    required={true}
+    formData={formData}
+    handleChange={handleChange}
+    loading={loading}
+  />
+  <InputField
+    name="contact_number"
+    placeholder="Mobile Contact"
+    icon={(props) => <PhoneIcon {...props} />}
+    type="tel"
+    required={true}
+    formData={formData}
+    handleChange={handleChange}
+    loading={loading}
+  />
+  <InputField
+    name="class_standard"
+    placeholder="Grade / Class (e.g., 10th)"
+    icon={(props) => <ClassIcon {...props} />}
+    required={true}
+    formData={formData}
+    handleChange={handleChange}
+    loading={loading}
+  />
+  <InputField
+    name="school_name"
+    placeholder="School / Institution Name"
+    icon={(props) => <SchoolIcon {...props} />}
+    required={true}
+    formData={formData}
+    handleChange={handleChange}
+    loading={loading}
+  />
+  <InputField
+    name="group"
+    placeholder="Team Name (Optional)"
+    icon={(props) => <TeamIcon {...props} />}
+    required={false}
+    formData={formData}
+    handleChange={handleChange}
+    loading={loading}
+  />
+</div>
 
                             {/* Section 2: Project Idea */}
                             <h2 className="text-xl font-bold text-[#e81cff] mt-4 pb-2 border-b border-gray-800/50 uppercase tracking-wider">2. Project Idea Submission</h2>
