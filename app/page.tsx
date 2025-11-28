@@ -467,9 +467,15 @@ const App: React.FC = () => {
                             <p className="text-base text-[#e81cff] mt-2">
                                 <a href="http://www.kainosverse.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#40c9ff] transition-colors">www.kainosverse.com</a>
                             </p>
-                            <p className="text-base text-white mt-1">
-                                <span className="text-[#40c9ff]">Contact:</span> +91 9770950823, +91 7999847933
-                            </p>
+                          <p className="text-base text-white mt-1 flex flex-wrap items-center justify-center gap-2 text-center">
+  <span className="text-[#40c9ff] font-semibold">Contact:</span>
+  <span className="whitespace-nowrap">+91 9770950823, </span>
+
+  {/* Separator hidden on very small screens */}
+  <span className="text-white/60 hidden xs:inline">|</span>
+
+  <span className="whitespace-nowrap">+91 7999847933</span>
+</p>
                         </div>
 
                     </div>
