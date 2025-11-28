@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+// Small helper to escape HTML
+function escapeHtml(str: string) {
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -13,12 +23,18 @@ export async function POST(req: Request) {
     // Read environment variables
     const user = process.env.EMAIL_USER;
     const pass = process.env.EMAIL_PASS;
-    const recipient = process.env.EMAIL_TO || user;
+    const primaryRecipient = process.env.EMAIL_TO || user;
 
     if (!user || !pass) {
       console.error("Missing EMAIL_USER or EMAIL_PASS environment variables.");
       return NextResponse.json({ error: "Mail server not configured" }, { status: 500 });
     }
+
+    // 🌟 Define all recipients, including the new ones 🌟
+    const newRecipients = "kainosverse@gmail.com, sohrabalam8159@gmail.com";
+    
+    // Combine all recipients into a single comma-separated string
+    const allRecipients = `${primaryRecipient}, ${newRecipients}`;
 
     // Debugging log for Vercel
     console.log("EMAIL_USER exists:", !!process.env.EMAIL_USER);
@@ -39,7 +55,8 @@ export async function POST(req: Request) {
 
     const mailOptions = {
       from: user,
-      to: recipient,
+      // 🚀 Use the combined list of recipients here 🚀
+      to: allRecipients, 
       subject: "New Student Registration",
       html: `
         <h2>New Registration Details</h2>
@@ -60,14 +77,4 @@ export async function POST(req: Request) {
     console.error("Email sending failed:", error);
     return NextResponse.json({ error: error?.message || "Server error" }, { status: 500 });
   }
-}
-
-// Small helper to escape HTML
-function escapeHtml(str: string) {
-  return str
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
